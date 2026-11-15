@@ -24,7 +24,9 @@ async function main() {
   await db.collection('roles').doc('admin').set({ rol: 'admin' });
   await db.collection('tipo_medallon').doc('demo').set({ tipo_medallon: 'Medalla General' });
   await db.collection('secciones').doc('demo').set({ seccion: 'Fuerza', medallon_id: 'demo' });
-  await db.collection('requisitos').doc('demo').set({ seccion_id: 'demo', requisito: 'Sentadillas', referencia: '3x10', unidad: 'reps' });
+  // El campo id_requisito debe coincidir con el id del documento para que
+  // las búsquedas .where('id_requisito', 'in', ids) del backend lo encuentren.
+  await db.collection('requisitos').doc('demo').set({ id_requisito: 'demo', seccion_id: 'demo', requisito: 'Sentadillas', referencia: '3x10', unidad: 'reps' });
   await db.collection('progreso_aspirante').doc(`${aspirante.uid}_demo`).set({ aspirante_id: aspirante.uid, requisito_id: 'demo', valor_registrado: 15 });
   await db.collection('pruebas').doc(`${aspirante.uid}_demo`).set({ aspirante_id: aspirante.uid, requisito_id: 'demo', resultado: 'aprobado', valor: '3x10', fecha_logrado: new Date().toISOString(), registrado_por: instructor.uid });
   await db.collection('aspirante_club').doc(aspirante.uid).set({ club_id: 'demo' });

@@ -79,6 +79,16 @@ export interface ProgresoAspirante {
 
 // ---- Vistas agregadas (las devuelve la API) ----
 
+/** Fila plana de GET /api/instructor/pruebas-recientes. */
+export interface PruebaReciente {
+  id: string
+  aspirante_nombre: string
+  requisito_nombre: string
+  resultado: 'aprobado' | 'reprobado'
+  valor: string
+  fecha_logrado: string
+}
+
 export interface AspiranteResumen {
   aspirante: Usuario
   aprobados: number

@@ -5,9 +5,10 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { StateChip, estadoFromPrueba } from '@/components/ui/StateChip'
 import { Spinner, EmptyState } from '@/components/ui/Spinner'
 import { useApi } from '@/lib/hooks'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { api } from '@/lib/api'
 import { formatFecha } from '@/lib/utils'
-import type { AspiranteResumen, RequisitoConEstado } from '@/types/entities'
+import type { AspiranteResumen, PruebaReciente, RequisitoConEstado } from '@/types/entities'
 
 /** Dashboard del instructor: vista global de su club. */
 export function InstructorDashboard() {
@@ -149,14 +150,18 @@ export function InstructorDashboard() {
 
       {/* Pruebas recientes */}
       <section>
-        <RecentPruebas />
+        <ErrorBoundary titulo="No se pudieron cargar los logros recientes">
+          <RecentPruebas />
+        </ErrorBoundary>
       </section>
     </div>
   )
 }
 
 function RecentPruebas() {
-  const { data, loading } = useApi(() => api.get<Array<{ prueba: import('@/types/entities').Prueba; aspirante_nombre: string; requisito_nombre: string }>>('/instructor/pruebas-recientes'))
+  const { data, loading } = useApi<PruebaReciente[]>(() =>
+    api.get<PruebaReciente[]>('/instructor/pruebas-recientes'),
+  )
 
   return (
     <GlassPanel accent="#4a8eff" className="p-base md:p-md">
@@ -168,14 +173,14 @@ function RecentPruebas() {
       ) : (
         <ul className="space-y-sm">
           {data.map((r, i) => (
-            <li key={i} className="flex items-center justify-between gap-base border-b border-white/5 py-sm last:border-0">
+            <li key={r.id ?? i} className="flex items-center justify-between gap-base border-b border-white/5 py-sm last:border-0">
               <div>
                 <p className="text-body-md text-body-md text-on-surface">{r.aspirante_nombre}</p>
                 <p className="text-label-sm text-label-sm text-on-surface-variant">{r.requisito_nombre}</p>
               </div>
               <div className="text-right">
-                <StateChip estado={estadoFromPrueba(r.prueba.resultado)} />
-                <p className="mt-xs text-label-sm text-label-sm text-on-surface-variant">{formatFecha(r.prueba.fecha_logrado)}</p>
+                <StateChip estado={estadoFromPrueba(r.resultado)} />
+                <p className="mt-xs text-label-sm text-label-sm text-on-surface-variant">{formatFecha(r.fecha_logrado)}</p>
               </div>
             </li>
           ))}
