@@ -1,4 +1,5 @@
 require('events').EventEmitter.prototype.setMaxListeners(0);
+require('dotenv').config(); // carga backend/.env
 const admin = require('firebase-admin');
 const path = require('path');
 
