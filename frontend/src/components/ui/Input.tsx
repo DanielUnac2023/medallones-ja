@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { InputHTMLAttributes } from 'react'
+import React, { type InputHTMLAttributes } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -7,7 +7,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 /** Input ghost: borde 1px white/10, focus borde gold + glow. */
-export function Input({ label, error, className, id, ...props }: InputProps) {
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, className, id, ...props }, ref) => {
   const inputId = id ?? props.name
   return (
     <div className="space-y-xs">
@@ -26,9 +27,11 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
           error && 'border-error',
           className,
         )}
+        ref={ref}
         {...props}
       />
       {error && <p className="text-error text-label-sm text-label-sm">{error}</p>}
     </div>
   )
 }
+)

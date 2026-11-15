@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/lib/api'
+import { FirebaseError } from 'firebase/app'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -36,7 +37,28 @@ export function LoginPage() {
       setUser(me)
       navigate(me.rol === 'aspirante' ? '/inicio-aspirante' : '/inicio', { replace: true })
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Error de conexión con el servidor')
+      if (e instanceof ApiError) {
+        setError(e.message)
+      } else if (e instanceof FirebaseError) {
+        switch (e.code) {
+          case 'auth/invalid-credential':
+            setError('Credenciales inválidas. Verifica tu email y contraseña.')
+            break
+          case 'auth/user-not-found':
+            setError('Usuario no encontrado. Registra una cuenta.')
+            break
+          case 'auth/wrong-password':
+            setError('Contraseña incorrecta.')
+            break
+          case 'auth/invalid-email':
+            setError('El formato del email es incorrecto.')
+            break
+          default:
+            setError('Error de autenticación: ' + e.message)
+        }
+      } else {
+        setError('Error de conexión con el servidor')
+      }
     } finally {
       setSubmitting(false)
     }
