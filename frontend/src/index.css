@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  background-color: #10131a;
+  color: #e1e2eb;
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Nivel 1: Cards/panels (glass) ---------- */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Nivel 2: Modales/overlays (más opaco + inner glow) ---------- */
+.glass-overlay {
+  background: rgba(16, 19, 26, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- Inputs ghost ---------- */
+.input-ghost {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+.input-ghost::placeholder {
+  color: rgba(208, 198, 171, 0.5);
+}
+.input-ghost:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.35), 0 0 18px rgba(255, 215, 0, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---------- Progress ring ---------- */
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.35s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* ---------- Glow cinético para botones primary ---------- */
+.kinetic-glow {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+}
+.kinetic-glow:hover {
+  box-shadow: 0 0 28px rgba(255, 215, 0, 0.35);
+}
+
+/* ---------- Línea de acento 2px para feature cards ---------- */
+.accent-line-top {
+  position: relative;
+}
+.accent-line-top::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: 9999px 9999px 0 0;
+  background: var(--accent, #ffd700);
+  opacity: 0.9;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #10131a;
+}
+::-webkit-scrollbar-thumb {
+  background: #32353c;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4d4732;
+}
+
+/* ---------- Focus visible (accesibilidad) ---------- */
+*:focus-visible {
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+  border-radius: 4px;
+}

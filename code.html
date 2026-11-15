@@ -1,0 +1,465 @@
+<!DOCTYPE html><html class="dark" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CLUBESTJA | Control de Lectura</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .kinetic-glow {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10131a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #32353c;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4d4732;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#001a41",
+                        "on-secondary-container": "#00285b",
+                        "outline": "#999077",
+                        "surface-bright": "#363940",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "on-primary": "#3a3000",
+                        "tertiary-fixed-dim": "#66df75",
+                        "background": "#10131a",
+                        "on-tertiary-container": "#006f25",
+                        "on-primary-fixed": "#221b00",
+                        "secondary-fixed-dim": "#adc7ff",
+                        "primary-fixed-dim": "#e9c400",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2e3037",
+                        "surface-container-high": "#272a31",
+                        "surface-variant": "#32353c",
+                        "tertiary-fixed": "#83fc8e",
+                        "surface-tint": "#e9c400",
+                        "on-tertiary-fixed-variant": "#00531a",
+                        "secondary-container": "#4a8eff",
+                        "primary": "#fff6df",
+                        "on-background": "#e1e2eb",
+                        "surface-container-lowest": "#0b0e14",
+                        "surface-container-highest": "#32353c",
+                        "surface-dim": "#10131a",
+                        "on-surface": "#e1e2eb",
+                        "tertiary-container": "#7af386",
+                        "secondary-fixed": "#d8e2ff",
+                        "inverse-primary": "#705d00",
+                        "on-secondary-fixed-variant": "#004493",
+                        "inverse-surface": "#e1e2eb",
+                        "secondary": "#adc7ff",
+                        "surface-container": "#1d2026",
+                        "on-tertiary-fixed": "#002106",
+                        "on-primary-container": "#705e00",
+                        "on-tertiary": "#00390f",
+                        "primary-fixed": "#ffe16d",
+                        "surface": "#10131a",
+                        "primary-container": "#ffd700",
+                        "on-surface-variant": "#d0c6ab",
+                        "on-secondary": "#002e68",
+                        "surface-container-low": "#191c22",
+                        "outline-variant": "#4d4732",
+                        "on-error-container": "#ffdad6",
+                        "tertiary": "#e0ffda",
+                        "on-primary-fixed-variant": "#544600"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "base": "8px",
+                        "xs": "4px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "margin-mobile": "16px",
+                        "xl": "80px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/30 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20 flex justify-between items-center px-margin-desktop h-20 w-full">
+<div class="flex items-center gap-md">
+<span class="font-display-lg text-headline-md tracking-tighter text-primary">CLUBESTJA</span>
+<div class="hidden md:flex gap-gutter items-center ml-xl">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Library</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md" href="#">Challenges</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md" href="#">Insights</a>
+</div>
+</div>
+<div class="flex items-center gap-base">
+<button class="p-2 text-on-surface-variant hover:bg-white/5 transition-all duration-300 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-white/5 transition-all duration-300 rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden ml-sm transition-transform active:scale-90 duration-200 cursor-pointer">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling man in his late 20s with short hair and a subtle stubble. He is set against a clean, out-of-focus futuristic background with soft blue and gold light leaks. The aesthetic is high-tech and professional, matching the premium kinetic glass UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMwPorBD5q9dizR61lU2OEcgKrFPgSkI7Em7ZXSra1U7LlHmuj_L4KxnmwT9bfWeclNC7i1eTi08NWW2XIH9LlaRvrmMot-yQAzFsnI4UXXiddL02ifYCZwoAZvVZISlWbnJZ8GLE-1Ts2VhfKOCgS0w2i-BKqG_qlyue3RIHirwCcew4n6Z9il4-JeimEzcTNcl27yLDDG45mmlJI77zpGuTMqG1vIVC_yh_xopfwcTVLYE59atmBbUJJrqhjk-WMYEgokcWkZB0">
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-20 h-[calc(100vh-80px)] w-64 bg-surface-container-low/50 backdrop-blur-2xl border-r border-white/5 shadow-xl flex flex-col p-4 gap-base hidden md:flex">
+<div class="flex items-center gap-sm p-sm mb-base">
+<div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-primary">Pro Reader</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Level 42</p>
+</div>
+</div>
+<nav class="space-y-base">
+<button class="w-full flex items-center gap-sm p-4 text-on-surface-variant hover:bg-white/5 hover:text-on-surface rounded-xl transition-all duration-200">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</button>
+<button class="w-full flex items-center gap-sm p-4 bg-primary-container text-on-primary-container rounded-xl shadow-[0_0_15px_rgba(255,215,0,0.3)] transition-transform translate-x-1 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-label-md text-label-md">Library</span>
+</button>
+<button class="w-full flex items-center gap-sm p-4 text-on-surface-variant hover:bg-white/5 hover:text-on-surface rounded-xl transition-all duration-200">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-label-md text-label-md">Challenges</span>
+</button>
+<button class="w-full flex items-center gap-sm p-4 text-on-surface-variant hover:bg-white/5 hover:text-on-surface rounded-xl transition-all duration-200">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-label-md">Insights</span>
+</button>
+</nav>
+<div class="mt-xl">
+
+</div>
+<div class="mt-auto space-y-base">
+<button class="w-full flex items-center gap-sm p-4 text-on-surface-variant hover:bg-white/5 hover:text-on-surface rounded-xl transition-all">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</button>
+<button class="w-full flex items-center gap-sm p-4 text-on-surface-variant hover:bg-white/5 hover:text-on-surface rounded-xl transition-all">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 px-margin-mobile md:px-margin-desktop pb-xl min-h-screen">
+<!-- Progreso General Section -->
+<section class="mb-xl">
+<div class="glass-panel rounded-3xl p-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-xl" style="--mouse-x: 564px; --mouse-y: 345px;">
+<!-- Decorative Glow Blobs -->
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-primary-container/10 blur-[100px] rounded-full"></div>
+<div class="absolute -bottom-24 -right-24 w-64 h-64 bg-secondary-container/10 blur-[100px] rounded-full"></div>
+<div class="relative z-10 space-y-md text-center md:text-left">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-primary-container mr-3 animate-pulse"></span>
+<span class="text-primary font-label-md text-label-md tracking-widest uppercase">1,240 PÁGINAS TOTALES</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary leading-tight">Control de<br>Lectura</h1>
+<p class="text-on-surface-variant max-w-md font-body-lg text-body-lg">Tu viaje literario está en marcha. Has completado el 70% de tus objetivos trimestrales. ¡Sigue así!</p>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-base">
+<div class="relative w-48 h-48">
+<svg class="w-full h-full" viewBox="0 0 100 100">
+<circle class="text-white/5" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-container progress-ring-circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="75.36" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-headline-lg text-primary">70%</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">META DIARIA</span>
+</div>
+</div>
+<div class="flex gap-gutter mt-sm">
+<div class="text-center">
+<p class="text-primary-container font-headline-md text-headline-md">12</p>
+<p class="text-on-surface-variant font-label-sm text-label-sm uppercase">Libros</p>
+</div>
+<div class="w-px h-10 bg-white/10 self-center"></div>
+<div class="text-center">
+<p class="text-secondary font-headline-md text-headline-md">18</p>
+<p class="text-on-surface-variant font-label-sm text-label-sm uppercase">Días Racha</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Books Management List -->
+<section class="space-y-base">
+<div class="flex justify-between items-center mb-md px-base">
+<h2 class="font-headline-md text-headline-md text-primary">Mis Lecturas</h2>
+<button class="text-primary-container font-label-md text-label-md flex items-center gap-xs hover:underline">
+                    Ver todos <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Book Row 1 -->
+<div class="glass-panel rounded-2xl p-sm md:p-base hover:bg-white/5 transition-all duration-300 group" style="--mouse-x: 426px; --mouse-y: 0px;">
+<div class="flex flex-col md:flex-row md:items-center gap-base md:gap-gutter">
+<div class="relative w-full md:w-20 h-40 md:h-28 rounded-lg overflow-hidden shrink-0">
+<img alt="Meditaciones Book" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A macro close-up of a classic, weathered hardcover book titled 'Meditaciones'. The cover features elegant serif typography and is bathed in soft, moody side-lighting that emphasizes the texture of the cloth binding. The scene has a scholarly, quiet atmosphere with hints of warm gold and deep charcoal in the shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG0a2iWdYV3pJeyKn7U1nsAPee2RbXeO2d9-yXc4vPGyzZGfOiLbyWXfWTaxg2GiZpiaYRe2BMc6fYzh3IbrGkZQdDXiQjmZuCNRHl8dKV4tvEN2uakKNK1fdB32gBijfOOatL_CCu1yDdbOZQqTIbNZiis5m-VZtdA4PoskXrNfFhApOFPkVHyXsDas2lS3qxOGvoAhJ1mQYo-maeBLyGgb1AtS1NZX1LVMAphQE2837M8-dzAA0v73WlDYjW11MVr8Fe7sdrgyw">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-body-lg text-primary truncate">Meditaciones</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Marco Aurelio</p>
+</div>
+<div class="text-right">
+<span class="text-primary font-label-md text-label-md">42 / 180 pág.</span>
+<span class="text-secondary font-label-sm text-label-sm block">23%</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 23%"></div>
+</div>
+</div>
+<div class="flex items-center gap-base md:ml-base">
+<button class="flex items-center gap-xs px-base py-2.5 bg-white/5 hover:bg-primary-container hover:text-on-primary-container transition-all rounded-xl border border-white/10 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            AGREGAR PÁGINAS
+                        </button>
+<div class="flex items-center gap-sm ml-sm">
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden xl:block">Resumen</span>
+<button class="w-10 h-6 bg-white/10 rounded-full relative transition-colors" onclick="this.classList.toggle('bg-primary-container')">
+<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform" style="left: 4px;"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Book Row 2 (Gold Accent) -->
+<div class="glass-panel rounded-2xl p-sm md:p-base hover:bg-white/5 transition-all duration-300 group">
+<div class="flex flex-col md:flex-row md:items-center gap-base md:gap-gutter">
+<div class="relative w-full md:w-20 h-40 md:h-28 rounded-lg overflow-hidden shrink-0">
+<img alt="El Gran Gatsby Book" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A stylized book cover illustration for 'El Gran Gatsby' in an Art Deco style. The artwork uses a rich palette of deep emerald green and metallic gold leaf. The lighting is dramatic and luxurious, reflecting a 1920s jazz-age aesthetic with clean, sharp geometric lines and a high-gloss finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGJW9qNiSD6hENWNQ79fjF7md7dt8gU3dhAW4nE7ObwtDy3ztayf319T7bcHfBZDAOE5PUdYp80tptCY3inX5pS9Mh308GbGhGZE7i_0ogxIvCsV228nZWGC8sjrGXfZNFogjMOo8ewqWlr7rc1ROUEaK2gt66lV9P466ARtN7b8Yn_pDcUXCtzCYGvz9u-YjFTlaL1uaOPMegcVB9w-rngLNqO69IplUN_QmKt2JhF85B2LdcxxnBWIeiYXHdDybJLEY7U3MgmuI">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-body-lg text-primary truncate">El Gran Gatsby</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm">F. Scott Fitzgerald</p>
+</div>
+<div class="text-right">
+<span class="text-primary font-label-md text-label-md">112 / 180 pág.</span>
+<span class="text-primary-container font-label-sm text-label-sm block">62%</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 62%"></div>
+</div>
+</div>
+<div class="flex items-center gap-base md:ml-base">
+<button class="flex items-center gap-xs px-base py-2.5 bg-white/5 hover:bg-primary-container hover:text-on-primary-container transition-all rounded-xl border border-white/10 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            AGREGAR PÁGINAS
+                        </button>
+<div class="flex items-center gap-sm ml-sm">
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden xl:block">Resumen</span>
+<button class="w-10 h-6 bg-primary-container rounded-full relative transition-colors">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Book Row 3 (Red Accent) -->
+<div class="glass-panel rounded-2xl p-sm md:p-base hover:bg-white/5 transition-all duration-300 group">
+<div class="flex flex-col md:flex-row md:items-center gap-base md:gap-gutter">
+<div class="relative w-full md:w-20 h-40 md:h-28 rounded-lg overflow-hidden shrink-0">
+<img alt="Crimen y Castigo Book" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A minimalist and powerful book cover for 'Crimen y Castigo'. It features a stark silhouette of a lonely figure in a cold, snowy St. Petersburg alleyway. The color scheme is dominated by deep blacks, cool grays, and a single, vibrant stroke of blood red across the title. The mood is intense, psychological, and dark." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3V9VORG2nkt030JLhgaC0cdoO5T3vLGfklBzWACYbidzfBuGgXT6TX_u9qWjLGdMyQZd_WWP8Tm2agcDY7KKbI9fOQ_9f6w3iEtoK4FOwKCFXJ5bWusDfyO2WbU5sVOgSMVH5e3AURO7eCl2cV9QtJbvjokYnyH3-QuQ4VKORplySS27oH9L4ytxUkrfAOn7f3GUT1u3GXWZITYgx7J7xMMjQLsF17tDHH7N2pv6Tm3KWt9SgZ8LjSmOpZVPwJc4XESEfAHezA1c">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-body-lg text-primary truncate">Crimen y Castigo</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Fyodor Dostoevsky</p>
+</div>
+<div class="text-right">
+<span class="text-primary font-label-md text-label-md">15 / 540 pág.</span>
+<span class="text-error font-label-sm text-label-sm block">3%</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 3%"></div>
+</div>
+</div>
+<div class="flex items-center gap-base md:ml-base">
+<button class="flex items-center gap-xs px-base py-2.5 bg-white/5 hover:bg-primary-container hover:text-on-primary-container transition-all rounded-xl border border-white/10 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            AGREGAR PÁGINAS
+                        </button>
+<div class="flex items-center gap-sm ml-sm">
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden xl:block">Resumen</span>
+<button class="w-10 h-6 bg-white/10 rounded-full relative transition-colors">
+<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Book Row 4 (Green Accent) -->
+<div class="glass-panel rounded-2xl p-sm md:p-base hover:bg-white/5 transition-all duration-300 group border-l-4 border-tertiary-fixed-dim">
+<div class="flex flex-col md:flex-row md:items-center gap-base md:gap-gutter">
+<div class="relative w-full md:w-20 h-40 md:h-28 rounded-lg overflow-hidden shrink-0">
+<img alt="Hábitos Atómicos Book" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Modern book cover for 'Hábitos Atómicos' featuring bright, neon-style graphics of orbiting particles. The aesthetic is clean, energetic, and tech-forward, using a palette of lime green and dark slate. The lighting creates a sense of kinetic energy and constant motion, fitting the youthful, pro-grade design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYQ92_nqCORA1juiKm45C7lVTN0hnG7eBc30jZW6_oDWF0FJ6SRn6FEUHFa-YVJGXWYGkviTxodLGOu6ZbR3rvTuCL0DV6n_x-t-3wGLOD-ddJLcKuLz0noGEegBYdjYPem0PhYmCN1j3EN1YJqKas4yTicp21lrpf5nQuyIcVh-50jDdjDHr3Yd4aIkvTZnm_mkuzzm7_669WWQ72gcJQnfdV4x5adh7a1dQtWYxsX5EhxzH8Dzaca43h2jS4mKye1wTA1bCoxYQ">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-body-lg text-primary truncate">Hábitos Atómicos</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm">James Clear</p>
+</div>
+<div class="text-right">
+<span class="text-primary font-label-md text-label-md">280 / 320 pág.</span>
+<span class="text-tertiary-fixed-dim font-label-sm text-label-sm block">87%</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim rounded-full" style="width: 87%"></div>
+</div>
+</div>
+<div class="flex items-center gap-base md:ml-base">
+<button class="flex items-center gap-xs px-base py-2.5 bg-white/5 hover:bg-primary-container hover:text-on-primary-container transition-all rounded-xl border border-white/10 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            AGREGAR PÁGINAS
+                        </button>
+<div class="flex items-center gap-sm ml-sm">
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden xl:block">Resumen</span>
+<button class="w-10 h-6 bg-primary-container rounded-full relative transition-colors">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Book Row 5 -->
+<div class="glass-panel rounded-2xl p-sm md:p-base hover:bg-white/5 transition-all duration-300 group" style="--mouse-x: 833px; --mouse-y: 94px;">
+<div class="flex flex-col md:flex-row md:items-center gap-base md:gap-gutter">
+<div class="relative w-full md:w-20 h-40 md:h-28 rounded-lg overflow-hidden shrink-0">
+<img alt="Sapiens Book" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A clean, contemporary cover for 'Sapiens' featuring a minimalist hand-drawn illustration of a primitive handprint transitioning into a digital circuit. The design is set against a warm, light-textured canvas background. Lighting is bright and even, creating an intellectual and expansive mood with earthy tones and sharp black accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeFX7s3N7-waYHzAc9q8-qVu7X0fZeWGwDdh5xU2bqwIhkiEgTCUyW9b93cXCHBBkbXc_FM8X_SX8WHLyZSH9YxK9ohjyxwxl1md9_T8yiBAAsbaZKNdKij4drVnqtwM0Chorwt6OfYDpJTs6dImKNOo2sy0cE5q6cKoGxbuPTs3yDED_09iCzXhq5_miLmpAhiG4ilY64O1Y4d0OEZGWFNSy_nrxcWVuSvtpYfTsUWQD4SVcycCuNOoj8_dumw-BfYRDAuq5cb8A">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-body-lg text-primary truncate">Sapiens</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Yuval Noah Harari</p>
+</div>
+<div class="text-right">
+<span class="text-primary font-label-md text-label-md">50 / 480 pág.</span>
+<span class="text-secondary font-label-sm text-label-sm block">10%</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 10%"></div>
+</div>
+</div>
+<div class="flex items-center gap-base md:ml-base">
+<button class="flex items-center gap-xs px-base py-2.5 bg-white/5 hover:bg-primary-container hover:text-on-primary-container transition-all rounded-xl border border-white/10 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            AGREGAR PÁGINAS
+                        </button>
+<div class="flex items-center gap-sm ml-sm">
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden xl:block">Resumen</span>
+<button class="w-10 h-6 bg-white/10 rounded-full relative transition-colors">
+<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for Quick Actions -->
+
+<script>
+        // Micro-interaction for toggle switches
+        document.querySelectorAll('button[class*="h-6"]').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const dot = this.querySelector('div');
+                if (this.classList.contains('bg-primary-container')) {
+                    this.classList.remove('bg-primary-container');
+                    this.classList.add('bg-white/10');
+                    dot.style.transform = 'translateX(0)';
+                    dot.style.left = '4px';
+                } else {
+                    this.classList.remove('bg-white/10');
+                    this.classList.add('bg-primary-container');
+                    dot.style.transform = 'translateX(16px)';
+                    dot.style.left = '4px';
+                }
+            });
+        });
+
+        // Add subtle hover effect to cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+<style class="stylus">.conversation-container {
+    max-width: 148rem !important;
+    /* Ajustá según necesites */
+}</style><style class="stylus">.conversation-container {
+    max-width: 148rem !important;
+    /* Ajustá según necesites */
+}</style></body><style class="stylus">.conversation-container {
+    max-width: 148rem !important;
+    /* Ajustá según necesites */
+}</style></html>
