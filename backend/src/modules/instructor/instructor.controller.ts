@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Param,
   Query,
   UseGuards,
 } from '@nestjs/common'
@@ -149,10 +150,44 @@ export class InstructorController {
     return { items, grupos: Array.from(grupos.values()) }
   }
 
-  /** GET /api/instructor/pruebas-recientes */
+  /** GET /api/instructor/requisitos/:requisito_id/aspirantes — aspirantes evaluados en un requisito. */
+  @Get('requisitos/:requisito_id/aspirantes')
+  async aspirantesPorRequisito(
+    @Param('requisito_id') requisitoId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const matrizSnap = await db
+      .collection('inscripcion_requisitos')
+      .where('requisito_id', '==', requisitoId)
+      .get()
+    const ids = [...new Set(matrizSnap.docs.map((d) => d.data().aspirante_id))]
+    const users = new Map<string, string>()
+    if (ids.length) {
+      const uSnap = await db.collection('usuarios').where('id_usuario', 'in', ids).get()
+      uSnap.forEach((d) => users.set(d.data().id_usuario, d.data().nombre))
+    }
+    return matrizSnap.docs.map((d) => {
+      const data = d.data()
+      return {
+        id: d.id,
+        aspirante_id: data.aspirante_id,
+        aspirante_nombre: users.get(data.aspirante_id) ?? 'Desconocido',
+        resultado: data.resultado,
+        valor: data.valor,
+        fecha_logrado: data.fecha_logrado,
+      }
+    })
+  }
+
+  /** GET /api/instructor/pruebas-recientes — últimos logros desde la matriz de evaluación. */
   @Get('pruebas-recientes')
   async recientes(@CurrentUser() user: AuthUser) {
-    const snap = await db.collection('pruebas').orderBy('fecha_logrado', 'desc').limit(10).get()
+    const snap = await db
+      .collection('inscripcion_requisitos')
+      .where('resultado', '==', 'aprobado')
+      .orderBy('fecha_logrado', 'desc')
+      .limit(10)
+      .get()
     const ids = [...new Set(snap.docs.map((d) => d.data().aspirante_id))]
     const reqIds = [...new Set(snap.docs.map((d) => d.data().requisito_id))]
     const users = new Map<string, string>()

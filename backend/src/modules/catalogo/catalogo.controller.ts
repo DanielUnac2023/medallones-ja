@@ -18,6 +18,8 @@ const COLECCIONES: Record<string, string> = {
   medallones: 'id_tipo', // alias amigable
   secciones: 'id_seccion',
   requisitos: 'id_requisito',
+  inscripciones: 'id_inscripcion',
+  inscripcion_requisitos: 'id_matriz',
 }
 
 @Controller(':coleccion')

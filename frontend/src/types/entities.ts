@@ -27,6 +27,8 @@ export interface Club {
 export interface TipoMedallon {
   id_tipo: string
   tipo_medallon: string
+  secciones_min?: number
+  requisitos_min?: number
 }
 
 export interface Seccion {
@@ -75,6 +77,29 @@ export interface ProgresoAspirante {
   requisito_id: string
   valor_registrado: number
   fecha_actualizado: string // ISO
+}
+
+// ---- Inscripción y matriz de evaluación ----
+
+export interface Inscripcion {
+  id: string
+  aspirante_id: string
+  medallon_id: string
+  secciones: string[]
+  fecha_inscripcion: string
+  estado: 'en_curso' | 'completado'
+}
+
+export interface InscripcionRequisito {
+  id: string
+  aspirante_id: string
+  requisito_id: string
+  seccion_id: string
+  medallon_id: string
+  resultado: 'aprobado' | 'reprobado' | null
+  valor: string
+  fecha_logrado: string
+  registrado_por: string
 }
 
 // ---- Vistas agregadas (las devuelve la API) ----
