@@ -8,10 +8,13 @@ async function bootstrap() {
 
   const origins = (process.env.CORS_ORIGINS ?? "")
     .split(",")
-    .map((o) => o.trim())
+    .map((o) => o.trim().replace(/\/$/, ""))
     .filter(Boolean);
+
+  const allowed = ["http://localhost:5173", "http://localhost:5174", ...origins];
+
   app.enableCors({
-    origin: (process.env.CORS_ORIGIN ?? "http://localhost:5174").split(","),
+    origin: allowed,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   });
@@ -20,6 +23,5 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   await app.listen(Number(process.env.PORT) ?? 3000);
-  console.log(`CLUBESTJA backend en http://localhost:${Number(process.env.PORT) ?? 3000}/api`);
 }
 void bootstrap();
