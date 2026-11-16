@@ -7,6 +7,7 @@ import { InstructorDashboard } from '@/features/instructor/InstructorDashboard'
 import { AspirantesPage } from '@/features/instructor/AspirantesPage'
 import { AspiranteDetallePage } from '@/features/instructor/AspiranteDetallePage'
 import { RequisitosPage } from '@/features/instructor/RequisitosPage'
+import { EvaluarRequisitoPage } from '@/features/instructor/EvaluarRequisitoPage'
 import { CatalogoPage } from '@/features/instructor/CatalogoPage'
 import { AspiranteDashboard } from '@/features/aspirante/AspiranteDashboard'
 import { MisRequisitosPage } from '@/features/aspirante/MisRequisitosPage'
@@ -39,6 +40,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['instructor', 'admin']}>
                 <RequisitosPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/requisitos/:requisitoId/evaluar"
+            element={
+              <ProtectedRoute roles={['instructor', 'admin']}>
+                <EvaluarRequisitoPage />
               </ProtectedRoute>
             }
           />

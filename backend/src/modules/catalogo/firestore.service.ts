@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { randomUUID } from 'node:crypto'
 import { db } from '../../firebase/firebase.module'
 
 /** Servicio genérico de Firestore para las colecciones del catálogo. */
@@ -16,9 +17,9 @@ export class FirestoreService {
   }
 
   async create(coleccion: string, idField: string, data: Record<string, unknown>) {
-    const id = String(data[idField] ?? crypto.randomUUID())
+    const id = String(data[idField] || randomUUID())
     await db.collection(coleccion).doc(id).set({ ...data, [idField]: id })
-    return { id, ...data }
+    return { id, ...data, [idField]: id }
   }
 
   async update(coleccion: string, id: string, data: Record<string, unknown>) {

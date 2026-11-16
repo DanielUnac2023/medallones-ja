@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, NotFoundException } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common'
 import { FirestoreService } from './firestore.service'
 import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard'
 import { RolesGuard, Roles } from '../../common/guards/roles.guard'
@@ -18,8 +29,25 @@ const COLECCIONES: Record<string, string> = {
   medallones: 'id_tipo', // alias amigable
   secciones: 'id_seccion',
   requisitos: 'id_requisito',
-  inscripciones: 'id_inscripcion',
-  inscripcion_requisitos: 'id_matriz',
+  // inscripciones e inscripcion_requisitos NO van aquí: solo se escriben vía InscripcionesService.
+}
+
+/** Rutas amigables que apuntan a otra colección de Firestore. */
+const ALIAS: Record<string, string> = { medallones: 'tipo_medallon' }
+
+/** Campos numéricos que llegan de formularios y deben guardarse como número. */
+const NUMERICOS = ['secciones_min', 'requisitos_min']
+
+function normalizar(body: Record<string, unknown>) {
+  const out = { ...body }
+  for (const k of NUMERICOS) {
+    if (k in out) {
+      const n = Number(out[k])
+      if (!Number.isInteger(n) || n < 1) throw new BadRequestException(`${k} debe ser un entero mayor o igual a 1`)
+      out[k] = n
+    }
+  }
+  return out
 }
 
 @Controller(':coleccion')
@@ -29,37 +57,35 @@ export class CatalogoController {
 
   @Get()
   list(@Param('coleccion') coleccion: string) {
-    this.validar(coleccion)
-    return this.svc.list(coleccion)
+    return this.svc.list(this.real(coleccion))
   }
 
   @Post()
   @UseGuards(RolesGuard)
   @Roles('instructor', 'admin')
   create(@Param('coleccion') coleccion: string, @Body() body: Record<string, unknown>) {
-    this.validar(coleccion)
-    return this.svc.create(coleccion, COLECCIONES[coleccion], body)
+    return this.svc.create(this.real(coleccion), COLECCIONES[coleccion], normalizar(body))
   }
 
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles('instructor', 'admin')
   update(@Param('coleccion') coleccion: string, @Param('id') id: string, @Body() body: Record<string, unknown>) {
-    this.validar(coleccion)
-    return this.svc.update(coleccion, id, body)
+    return this.svc.update(this.real(coleccion), id, normalizar(body))
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles('instructor', 'admin')
   remove(@Param('coleccion') coleccion: string, @Param('id') id: string) {
-    this.validar(coleccion)
-    return this.svc.remove(coleccion, id)
+    return this.svc.remove(this.real(coleccion), id)
   }
 
-  private validar(coleccion: string) {
+  /** Valida la colección contra la allowlist y resuelve su nombre real en Firestore. */
+  private real(coleccion: string) {
     if (!COLECCIONES[coleccion]) {
       throw new NotFoundException(`Colección '${coleccion}' no permitida`)
     }
+    return ALIAS[coleccion] ?? coleccion
   }
 }

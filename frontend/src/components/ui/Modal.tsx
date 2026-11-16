@@ -31,7 +31,7 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
     >
       <div
         className={cn(
-          'glass-overlay w-full rounded-xl p-6 shadow-2xl',
+          'glass-overlay max-h-[90vh] w-full overflow-y-auto rounded-xl p-6 shadow-2xl',
           wide ? 'max-w-2xl' : 'max-w-md',
         )}
         onClick={(e) => e.stopPropagation()}

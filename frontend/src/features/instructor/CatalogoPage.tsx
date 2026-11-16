@@ -110,11 +110,27 @@ export function CatalogoPage() {
         <EntityTable
           data={medallones.data ?? []}
           loading={medallones.loading}
-          columns={[{ key: 'tipo_medallon', label: 'Medallón' }]}
+          columns={[
+            { key: 'tipo_medallon', label: 'Medallón' },
+            { key: 'secciones_min', label: 'Mín. secciones' },
+          ]}
           onSaved={medallones.reload}
           endpoint="/medallones"
           field="tipo_medallon"
           empty="Sin medallones"
+          extraFields={
+            <div className="space-y-xs">
+              <label className="block text-label-md text-label-md uppercase text-on-surface-variant">Mínimo de secciones</label>
+              <input
+                name="secciones_min"
+                data-extra
+                type="number"
+                min={1}
+                defaultValue={1}
+                className="input-ghost w-full rounded-md bg-surface px-3 py-2.5 text-body-md text-on-surface"
+              />
+            </div>
+          }
         />
       )}
     </div>
@@ -164,7 +180,7 @@ function EntityTable<T extends object>({
   // Recolecta los selects extra del formulario (asoc_id, distrito_id...)
   function collectExtras(): Record<string, string> {
     const out: Record<string, string> = {}
-    document.querySelectorAll<HTMLSelectElement>('select[name]').forEach((s) => {
+    document.querySelectorAll<HTMLSelectElement | HTMLInputElement>('select[name], input[data-extra][name]').forEach((s) => {
       if (s.value) out[s.name] = s.value
     })
     return out

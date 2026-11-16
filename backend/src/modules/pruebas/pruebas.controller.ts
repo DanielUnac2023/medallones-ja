@@ -6,9 +6,8 @@ import {
   Param,
   Body,
   UseGuards,
-  BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common'
+import { InscripcionesService } from '../inscripciones/inscripciones.service'
 import { FirebaseAuthGuard, type AuthUser } from '../../common/guards/firebase-auth.guard'
 import { RolesGuard, Roles } from '../../common/guards/roles.guard'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
@@ -26,25 +25,15 @@ interface CrearPruebaDto {
 @Controller('pruebas')
 @UseGuards(FirebaseAuthGuard)
 export class PruebasController {
+  constructor(private readonly inscripciones: InscripcionesService) {}
+
   /** POST /api/pruebas — registra una prueba (multi-tenant: solo su club). */
   @Post()
   @UseGuards(RolesGuard)
   @Roles('instructor', 'admin')
-  async crear(@Body() dto: CrearPruebaDto, @CurrentUser() user: AuthUser) {
-    const aspiranteSnap = await db.collection('usuarios').doc(dto.aspirante_id).get()
-    if (!aspiranteSnap.exists) throw new BadRequestException('El aspirante no existe')
-    const aspirante = aspiranteSnap.data() as { club_id: string }
-    if (user.rol !== 'admin' && aspirante.club_id !== user.club_id) {
-      throw new ForbiddenException('El aspirante no pertenece a tu club')
-    }
-
-    const id = `${dto.aspirante_id}_${dto.requisito_id}`
-    await db.collection('pruebas').doc(id).set({
-      ...dto,
-      registrado_por: user.uid,
-      creado_el: new Date().toISOString(),
-    })
-    return { id, ...dto }
+  crear(@Body() dto: CrearPruebaDto, @CurrentUser() user: AuthUser) {
+    // Pasa por la matriz: solo se evalúan requisitos del plan del aspirante.
+    return this.inscripciones.registrarEvaluaciones(dto.requisito_id, [dto], user)
   }
 
   /** DELETE /api/pruebas/:id */

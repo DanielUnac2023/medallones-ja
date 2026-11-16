@@ -26,30 +26,48 @@ async function main() {
   await db.collection('roles').doc('demo').set({ id_rol: 'demo', rol: 'aspirante' });
   await db.collection('roles').doc('admin').set({ id_rol: 'admin', rol: 'admin' });
 
-  // ---- Medallones con reglas (secciones_min / requisitos_min) ----
-  await db.collection('tipo_medallon').doc('plata').set({ id_tipo: 'plata', tipo_medallon: 'Medallón de plata', secciones_min: 3, requisitos_min: 1 });
-  await db.collection('tipo_medallon').doc('oro').set({ id_tipo: 'oro', tipo_medallon: 'Medallón de oro', secciones_min: 4, requisitos_min: 1 });
+  // ---- Medallones: mínimo de secciones que el aspirante debe elegir ----
+  await db.collection('tipo_medallon').doc('plata').set({ id_tipo: 'plata', tipo_medallon: 'Medallón de plata', secciones_min: 3 });
+  await db.collection('tipo_medallon').doc('oro').set({ id_tipo: 'oro', tipo_medallon: 'Medallón de oro', secciones_min: 4 });
 
-  // ---- 5 secciones, 2 por medallón de plata + extra para oro ----
-  const secciones = [
-    { id: 'fuerza', nombre: 'Fuerza', medallon_id: 'plata' },
-    { id: 'resistencia', nombre: 'Resistencia', medallon_id: 'plata' },
-    { id: 'velocidad', nombre: 'Velocidad', medallon_id: 'plata' },
-    { id: 'flexibilidad', nombre: 'Flexibilidad', medallon_id: 'oro' },
-    { id: 'técnica', nombre: 'Técnica', medallon_id: 'oro' },
-  ];
+  // ---- 5 secciones por medallón; cada una con su mínimo de requisitos ----
+  const nombresSeccion = ['Fuerza', 'Resistencia', 'Velocidad', 'Flexibilidad', 'Técnica'];
+  const secciones = [];
+  for (const med of ['plata', 'oro']) {
+    for (const nombre of nombresSeccion) {
+      const base = nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      secciones.push({
+        id: med === 'plata' ? base : `${base}-oro`,
+        nombre,
+        medallon_id: med,
+        descripcion: `Pruebas de ${nombre.toLowerCase()} del ${med === 'plata' ? 'medallón de plata' : 'medallón de oro'}`,
+        requisitos_min: 1,
+      });
+    }
+  }
   for (const s of secciones) {
-    await db.collection('secciones').doc(s.id).set({ id_seccion: s.id, seccion: s.nombre, medallon_id: s.medallon_id });
+    await db.collection('secciones').doc(s.id).set({
+      id_seccion: s.id,
+      seccion: s.nombre,
+      descripcion: s.descripcion,
+      medallon_id: s.medallon_id,
+      requisitos_min: s.requisitos_min,
+    });
   }
 
-  // ---- Requisitos (mínimo 1 por sección; demo usa 2 en algunas) ----
+  // ---- Requisitos (unidad: distancia | segundos | reps) ----
   const requisitos = [
-    { id: 'sentadillas', seccion_id: 'fuerza', requisito: 'Sentadillas', referencia: '3x10', unidad: 'reps' },
-    { id: 'flexiones', seccion_id: 'fuerza', requisito: 'Flexiones', referencia: '3x8', unidad: 'reps' },
-    { id: 'carrera', seccion_id: 'resistencia', requisito: 'Carrera 1km', referencia: 'menor a 6 min', unidad: 'segundos' },
+    { id: 'sentadillas', seccion_id: 'fuerza', requisito: 'Sentadillas', referencia: '30', unidad: 'reps' },
+    { id: 'flexiones', seccion_id: 'fuerza', requisito: 'Flexiones', referencia: '24', unidad: 'reps' },
+    { id: 'carrera', seccion_id: 'resistencia', requisito: 'Carrera 1km', referencia: '360', unidad: 'segundos' },
     { id: 'salto', seccion_id: 'velocidad', requisito: 'Salto alto', referencia: '1.50 m', unidad: 'distancia' },
-    { id: 'puente', seccion_id: 'flexibilidad', requisito: 'Puente', referencia: '30 seg', unidad: 'segundos' },
-    { id: 'equilibrio', seccion_id: 'técnica', requisito: 'Equilibrio', referencia: '20 seg', unidad: 'segundos' },
+    { id: 'puente', seccion_id: 'flexibilidad', requisito: 'Puente', referencia: '30', unidad: 'segundos' },
+    { id: 'equilibrio', seccion_id: 'tecnica', requisito: 'Equilibrio', referencia: '20', unidad: 'segundos' },
+    { id: 'dominadas-oro', seccion_id: 'fuerza-oro', requisito: 'Dominadas', referencia: '12', unidad: 'reps' },
+    { id: 'carrera-oro', seccion_id: 'resistencia-oro', requisito: 'Carrera 3km', referencia: '900', unidad: 'segundos' },
+    { id: 'sprint-oro', seccion_id: 'velocidad-oro', requisito: 'Sprint 100 m', referencia: '14', unidad: 'segundos' },
+    { id: 'split-oro', seccion_id: 'flexibilidad-oro', requisito: 'Split', referencia: '60', unidad: 'segundos' },
+    { id: 'salto-largo-oro', seccion_id: 'tecnica-oro', requisito: 'Salto largo', referencia: '2.20 m', unidad: 'distancia' },
   ];
   for (const r of requisitos) {
     await db.collection('requisitos').doc(r.id).set({ id_requisito: r.id, ...r });
@@ -65,7 +83,9 @@ async function main() {
   await db.collection('inscripciones').doc(`${aspirante.uid}_plata`).set({
     aspirante_id: aspirante.uid,
     medallon_id: 'plata',
+    club_id: 'demo',
     secciones: seccElegidas,
+    requisitos_por_seccion: reqsPorSeccion,
     fecha_inscripcion: new Date().toISOString(),
     estado: 'en_curso',
   });

@@ -7,11 +7,13 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module'
 import { ProgresoModule } from './modules/progreso/progreso.module'
 import { PruebasModule } from './modules/pruebas/pruebas.module'
 import { InstructorModule } from './modules/instructor/instructor.module'
+import { InscripcionesModule } from './modules/inscripciones/inscripciones.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     FirestoreModule,
+    InscripcionesModule,
     AuthModule,
     UsuariosModule,
     ProgresoModule,

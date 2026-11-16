@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -12,83 +12,110 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Spinner, EmptyState } from '@/components/ui/Spinner'
 import { useApi } from '@/lib/hooks'
 import { api } from '@/lib/api'
-import type { RequisitoConEstado } from '@/types/entities'
+import { formatFecha } from '@/lib/utils'
+import { etiquetaUnidad, type DetalleAspirante, type InscribirPayload, type RequisitoPlan } from '@/types/entities'
+import { InscripcionSelector, erroresInscripcion, inscripcionVacia, useCatalogo } from './InscripcionSelector'
 
-/** Detalle de un aspirante: requisitos agrupados por sección + registro de prueba. */
+/** Detalle de un aspirante: su plan (medallón → secciones → requisitos) y registro de pruebas. */
 export function AspiranteDetallePage() {
   const { aspiranteId } = useParams<{ aspiranteId: string }>()
-  const { data, loading, reload } = useApi<RequisitoConEstado[]>(
-    () => api.get(`/instructor/requisitos?aspirante_id=${aspiranteId}`),
+  const { data, loading, error, reload } = useApi<DetalleAspirante>(
+    () => api.get(`/instructor/aspirantes/${aspiranteId}`),
     [aspiranteId],
   )
-  const [seleccionado, setSeleccionado] = useState<RequisitoConEstado | null>(null)
-
-  const agrupados = useMemo(() => {
-    const map = new Map<string, { seccion: string; items: RequisitoConEstado[] }>()
-    for (const item of data ?? []) {
-      const key = item.seccion.id_seccion
-      if (!map.has(key)) map.set(key, { seccion: item.seccion.seccion, items: [] })
-      map.get(key)!.items.push(item)
-    }
-    return Array.from(map.values())
-  }, [data])
+  const [seleccionado, setSeleccionado] = useState<RequisitoPlan | null>(null)
+  const [editandoPlan, setEditandoPlan] = useState(false)
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size={40} /></div>
+  if (error || !data) {
+    return <GlassPanel><EmptyState icon="error" title="No se pudo cargar el aspirante" subtitle={error ?? undefined} /></GlassPanel>
+  }
+
+  const insc = data.inscripcion
+  const pct = data.total ? Math.round((data.aprobados / data.total) * 100) : 0
+  const enCurso = insc?.estado === 'en_curso'
+  const textoPlan = enCurso ? 'Editar plan' : insc ? 'Inscribir en otro medallón' : 'Inscribir en medallón'
 
   return (
     <div className="space-y-lg">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link to="/aspirantes" className="text-label-md text-label-md text-secondary hover:underline">
-            ← Volver a aspirantes
-          </Link>
-          <h1 className="mt-xs font-headline-lg text-headline-lg text-primary">
-            {data?.[0] ? 'Detalle del aspirante' : 'Aspirante'}
-          </h1>
+      <div>
+        <Link to="/aspirantes" className="text-label-md text-label-md text-secondary hover:underline">
+          ← Volver a aspirantes
+        </Link>
+        <div className="mt-xs flex flex-col gap-base md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="font-headline-lg text-headline-lg text-primary">{data.aspirante.nombre}</h1>
+            <p className="text-body-md text-body-md text-on-surface-variant">
+              {insc
+                ? `${insc.medallon} · inscrito el ${formatFecha(insc.fecha_inscripcion)}`
+                : 'Aún no está inscrito en un medallón'}
+            </p>
+          </div>
+          <Button variant={enCurso ? 'secondary' : 'primary'} onClick={() => setEditandoPlan(true)}>
+            <span className="material-symbols-outlined text-[20px]">{enCurso ? 'edit' : 'military_tech'}</span>
+            {textoPlan}
+          </Button>
         </div>
       </div>
 
-      {!agrupados.length ? (
-        <GlassPanel><EmptyState icon="checklist" title="Sin requisitos" subtitle="Crea secciones y requisitos desde Requisitos." /></GlassPanel>
+      {insc && (
+        <GlassPanel className="flex flex-col gap-base p-base md:flex-row md:items-center md:gap-gutter md:p-md">
+          <div className="flex-1">
+            <div className="mb-xs flex justify-between text-label-sm text-label-sm">
+              <span className="text-on-surface-variant">{data.aprobados} / {data.total} requisitos aprobados</span>
+              <span className="text-primary-container">{pct}%</span>
+            </div>
+            <ProgressBar porcentaje={pct} colorClass={pct === 100 ? 'bg-tertiary-fixed-dim' : 'bg-secondary-container'} />
+          </div>
+          {insc.estado === 'completado'
+            ? <StateChip estado="aprobado" label={`Completado ${formatFecha(insc.fecha_completado)}`} />
+            : <StateChip estado="info" label="En curso" />}
+        </GlassPanel>
+      )}
+
+      {!insc ? (
+        <GlassPanel>
+          <EmptyState icon="military_tech" title="Sin plan" subtitle="Inscríbelo en un medallón eligiendo sus secciones y requisitos." />
+        </GlassPanel>
       ) : (
-        agrupados.map((grupo) => (
-          <GlassPanel key={grupo.seccion} accent="#e9c400" className="p-base md:p-md">
-            <h2 className="mb-md font-headline-md text-headline-md text-primary-container">
-              {grupo.seccion}
-            </h2>
+        data.secciones.map((grupo) => (
+          <GlassPanel key={grupo.id_seccion} accent="#e9c400" className="p-base md:p-md">
+            <div className="mb-md flex items-start justify-between gap-base">
+              <div>
+                <h2 className="font-headline-md text-headline-md text-primary-container">{grupo.seccion}</h2>
+                {grupo.descripcion && (
+                  <p className="text-label-sm text-label-sm text-on-surface-variant">{grupo.descripcion}</p>
+                )}
+              </div>
+              <span className="shrink-0 text-label-sm text-label-sm text-on-surface-variant">
+                {grupo.aprobados} / {grupo.total}
+              </span>
+            </div>
             <ul className="space-y-sm">
-              {grupo.items.map((item) => {
-                const estado = estadoFromPrueba(item.prueba?.resultado)
+              {grupo.requisitos.map((item) => {
+                const estado = estadoFromPrueba(item.resultado)
                 return (
                   <li
-                    key={item.requisito.id_requisito}
+                    key={item.id_requisito}
                     className="flex flex-col gap-base rounded-lg border border-white/5 bg-white/[0.02] p-base md:flex-row md:items-center md:gap-gutter"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-body-md text-body-md text-on-surface">{item.requisito.requisito}</p>
+                      <p className="text-body-md text-body-md text-on-surface">{item.requisito}</p>
                       <p className="text-label-sm text-label-sm text-on-surface-variant">
-                        Referencia: {item.requisito.referencia || '—'}
+                        Referencia: {item.referencia || '—'} · {etiquetaUnidad(item.unidad)}
+                        {item.progreso != null && ` · Progreso del aspirante: ${item.progreso}`}
                       </p>
                     </div>
-                    <div className="flex items-center gap-base md:min-w-56">
-                      <div className="flex-1">
-                        <div className="mb-xs flex justify-between text-label-sm text-label-sm">
-                          <span className="text-on-surface-variant">
-                            {item.progreso ? `Progreso: ${item.progreso.valor_registrado}` : 'Sin progreso'}
-                          </span>
-                          {item.prueba && <span className="text-tertiary-fixed">{item.prueba.valor}</span>}
-                        </div>
-                        <ProgressBar
-                          porcentaje={item.prueba?.resultado === 'aprobado' ? 100 : item.progreso ? Math.min(100, item.progreso.valor_registrado) : 0}
-                          colorClass={
-                            estado === 'aprobado' ? 'bg-tertiary-fixed-dim' : estado === 'reprobado' ? 'bg-error' : 'bg-secondary-container'
-                          }
-                        />
-                      </div>
+                    <div className="flex items-center gap-base">
+                      {item.resultado && (
+                        <span className="text-label-sm text-label-sm text-on-surface-variant">
+                          {item.valor || '—'} · {formatFecha(item.fecha_logrado)}
+                        </span>
+                      )}
                       <StateChip estado={estado} />
                       <Button size="sm" variant="secondary" onClick={() => setSeleccionado(item)}>
                         <span className="material-symbols-outlined text-[18px]">add_task</span>
-                        Prueba
+                        {item.resultado ? 'Corregir' : 'Prueba'}
                       </Button>
                     </div>
                   </li>
@@ -100,8 +127,92 @@ export function AspiranteDetallePage() {
       )}
 
       <Modal open={!!seleccionado} onClose={() => setSeleccionado(null)} title="Registrar prueba">
-        {seleccionado && <RegistrarPruebaForm requisito={seleccionado} aspiranteId={aspiranteId!} onDone={() => { setSeleccionado(null); reload() }} />}
+        {seleccionado && (
+          <RegistrarPruebaForm
+            requisito={seleccionado}
+            aspiranteId={aspiranteId!}
+            onCancel={() => setSeleccionado(null)}
+            onDone={() => { setSeleccionado(null); reload() }}
+          />
+        )}
       </Modal>
+
+      <Modal open={editandoPlan} onClose={() => setEditandoPlan(false)} title={textoPlan} wide>
+        {editandoPlan && (
+          <PlanForm
+            aspiranteId={aspiranteId!}
+            detalle={data}
+            onCancel={() => setEditandoPlan(false)}
+            onDone={() => { setEditandoPlan(false); reload() }}
+          />
+        )}
+      </Modal>
+    </div>
+  )
+}
+
+function PlanForm({
+  aspiranteId,
+  detalle,
+  onCancel,
+  onDone,
+}: {
+  aspiranteId: string
+  detalle: DetalleAspirante
+  onCancel: () => void
+  onDone: () => void
+}) {
+  const catalogo = useCatalogo()
+  // Solo se edita la inscripción en curso; si está completada se empieza un medallón nuevo.
+  const insc = detalle.inscripcion?.estado === 'en_curso' ? detalle.inscripcion : null
+  const [plan, setPlan] = useState<InscribirPayload>(
+    insc
+      ? { medallon_id: insc.medallon_id, secciones: insc.secciones, requisitos_por_seccion: insc.requisitos_por_seccion }
+      : inscripcionVacia,
+  )
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const aprobados = insc
+    ? detalle.secciones.flatMap((s) => s.requisitos.filter((r) => r.resultado === 'aprobado').map((r) => r.id_requisito))
+    : []
+  const errores = erroresInscripcion(plan, catalogo.data)
+
+  const guardar = async () => {
+    setError(null)
+    setSaving(true)
+    try {
+      await api.post(`/usuarios/${aspiranteId}/inscripcion`, plan)
+      onDone()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar el plan')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="space-y-md">
+      <InscripcionSelector
+        catalogo={catalogo.data}
+        loading={catalogo.loading}
+        value={plan}
+        onChange={setPlan}
+        medallonBloqueado={!!insc}
+        requisitosBloqueados={aprobados}
+      />
+      {plan.medallon_id && errores.length > 0 && (
+        <ul className="list-disc space-y-xs pl-5 text-label-sm text-label-sm text-on-surface-variant">
+          {errores.map((e) => <li key={e}>{e}</li>)}
+        </ul>
+      )}
+      {error && <p className="text-error text-label-sm text-label-sm">{error}</p>}
+      <div className="flex justify-end gap-base">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button onClick={guardar} disabled={saving || errores.length > 0}>
+          {saving ? 'Guardando…' : 'Guardar plan'}
+        </Button>
+      </div>
     </div>
   )
 }
@@ -115,26 +226,28 @@ const pruebaSchema = z.object({
 function RegistrarPruebaForm({
   requisito,
   aspiranteId,
+  onCancel,
   onDone,
 }: {
-  requisito: RequisitoConEstado
+  requisito: RequisitoPlan
   aspiranteId: string
+  onCancel: () => void
   onDone: () => void
 }) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<z.infer<typeof pruebaSchema>>({
     resolver: zodResolver(pruebaSchema),
-    defaultValues: { resultado: 'aprobado' as const, valor: '', fecha_logrado: new Date().toISOString().slice(0, 10) },
+    defaultValues: {
+      resultado: requisito.resultado ?? 'aprobado',
+      valor: requisito.valor ?? '',
+      fecha_logrado: (requisito.fecha_logrado || new Date().toISOString()).slice(0, 10),
+    },
   })
   const [error, setError] = useState<string | null>(null)
 
-  const onSubmit = async (data: { resultado: string; valor: string; fecha_logrado: string }) => {
+  const onSubmit = async (data: z.infer<typeof pruebaSchema>) => {
     setError(null)
     try {
-      await api.post('/pruebas', {
-        aspirante_id: aspiranteId,
-        requisito_id: requisito.requisito.id_requisito,
-        ...data,
-      })
+      await api.post(`/usuarios/${aspiranteId}/pruebas`, { requisito_id: requisito.id_requisito, ...data })
       onDone()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al registrar')
@@ -144,7 +257,7 @@ function RegistrarPruebaForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-md">
       <p className="text-body-md text-body-md text-on-surface-variant">
-        {requisito.requisito.requisito} — <span className="text-primary">{requisito.requisito.referencia}</span>
+        {requisito.requisito} — <span className="text-primary">{requisito.referencia}</span>
       </p>
       <div className="space-y-xs">
         <label className="block text-label-md text-label-md uppercase text-on-surface-variant">Resultado</label>
@@ -156,12 +269,12 @@ function RegistrarPruebaForm({
           <option value="reprobado">Reprobado</option>
         </select>
       </div>
-      <Input label="Medición (ej. 1.85 m, 12 seg, 15 reps)" placeholder="Medición" {...register('valor')} error={errors.valor?.message} />
-      <Input label="Fecha del logro" type="date" {...register('fecha_logrado')} error={errors.fecha_logrado?.message} />
+      <Input label={`Medición (${etiquetaUnidad(requisito.unidad)})`} placeholder="Medición" {...register('valor')} error={errors.valor?.message} />
+      <Input label="Fecha" type="date" {...register('fecha_logrado')} error={errors.fecha_logrado?.message} />
       {error && <p className="text-error text-label-sm text-label-sm">{error}</p>}
       <div className="flex justify-end gap-base">
-        <Button type="button" variant="ghost" onClick={onDone}>Cancelar</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Guardando…' : 'Registrar logro'}</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Guardando…' : 'Registrar'}</Button>
       </div>
     </form>
   )
